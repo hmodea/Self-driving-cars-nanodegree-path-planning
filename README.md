@@ -1,5 +1,33 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
+
+### Project Structure
+The project addresses the problem of developing a path planner for highway driving for a self driving car. The developed path planner basically is formed of three main building blocks:
+
+1. Object predictor.
+2. Behavioral planner. 
+3. Trajectory planner.
+
+### Object predictor:
+
+The first, building block which is intertwined in the code with the other two building blocks is the object prediction block. The object prediction block's role is to predict the future state of the other vehicles in the road. In the implementation we consider the traversed longitudinal distance s in frenet coordinates and project that in the future from the previous's path point of view. Such prediction is carried out for all vehicles in the current driving lane as well as the neighbouring ones in case a lane change is attempted.
+
+
+### Behavioral planner:
+
+The Behavior planner is realized by a simple finite state machine. First, we predict that the location of the other cars on the road from the previous navigated path point of view. If the object in the driving lane is found to be too close, we attempt a lane change.
+The states in our FSM (code: lines 141 - 178) are the three lanes in the same driving direction: left, middle and right.
+If we are on either the right or the left lane then only a lane to the middle lane is possible. We make use of a helper function (code lines 166 - 193) which checks whether such change is safe or not by comparing the car's location with the predicted future locations of the vehicles in the lane from the previous path point of view. The distance is compared to minimum allowable gap for such lane change to be safe. If the lane change found safe the action is excuted.
+In case if the car was driving on the middle lane both neighbouring lanes are examined with a higher priority given to overtaking vehicle by maneuvering to the left. The current driving lane is updated accordingly.
+
+The behavior planner is also responsible for adjusting the car's speed (code: lines 180 - 188) to ensure no sudden change in the velocity occurs in addition to obeying the maximum speed limit. We start the journey at zero speed and keep increasing the velocity by a fixed increment.
+
+### Trajectory Planner
+
+The third build block is the trajectory planner (code: lines 191 - 308). The trajectory planner relies on the output of the behavioral planner to plan the detailed trajectory that the vehicle would traverse based on the desired action by the behavioral planner. The trajectory planner starts from the last two traversed points of the previously traversed path and appends it with the new planned path, ensuring a smoothing generated trajectory. In order to generate a smooth trajectory (with acceleration and jerk =0) we generate a spline (by utilizing the C++ spline library). Three waypoints are generated separated by a chosen horizon longitudinal distance . The points are generated in frenet coordinates considering the desired lane by the behavioral planner and then converted to cartesian coordinates. The points are the transformed to the cars frame of reference for easier calculations. The generated way points are the used to generated the spline representing the maneuver. The number of points the car would tranverse is deduced considering the desired velocity also set by the behavioral planner. The path points are finally converted back to the global coordinates and passed for the simulator to excute.
+
+
+Short navigation video to illustrate the path planning algorithm is shown on the following [link](./navigation_video.mp4)
    
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
